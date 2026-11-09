@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Toàn màn hình THẬT.
+
+      ⚠ Chỉ đặt cờ systemUiVisibility trong Activity là CHƯA ĐỦ trên ROM này: đo trên máy
+        thật 18/08/2026, thanh trạng thái vẫn đè lên đầu trang, WebView chỉ được 1280×752
+        thay vì 1280×800 (xem `dumpsys display`: app 1280 x 752).
+        Phải khai luôn windowFullscreen ở theme thì khung mới đúng ngay từ lúc dựng,
+        không thì trang bố cục theo chiều cao cũ rồi mới giãn ra, chữ nhảy một nhịp.
+
+      Robot ở quầy hành chính công không được để lộ thanh trạng thái: người dân kéo xuống
+      là ra thẳng cài đặt Android.
+    -->
+    <style name="Theme.HCC" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>

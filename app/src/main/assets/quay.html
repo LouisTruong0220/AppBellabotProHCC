@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quầy — Hàng chờ số thứ tự</title>
+<!--
+  TRANG DÀNH CHO CÁN BỘ 7 QUẦY. Robot tự phục vụ trang này, xem MayChu.kt.
+  Cán bộ mở http://<ip-robot>:8080 trên điện thoại hoặc máy tính, chọn quầy một
+  lần rồi thôi — trình duyệt nhớ hộ.
+
+  Chủ ý thiết kế:
+   · Không đăng nhập. Trung tâm hành chính công không phải chỗ để cán bộ loay hoay
+     nhớ mật khẩu lúc dân đang xếp hàng. Mạng nội bộ của phường coi là tin được.
+   · Nút Xử lý to hết cỡ, vì đó là nút bấm cả trăm lần mỗi ngày.
+   · Bấm nhầm thì có Hoàn tác trong 30 giây — gọi nhầm số là người dân đi lên rồi
+     lại phải quay về chỗ ngồi.
+-->
+<style>
+  :root{ --do:#C13F28; --xanh:#1F6F5C; --xam:#6b6b6b; --nen:#f5f2f0; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       background:var(--nen);color:#1a1a1a}
+  header{background:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:1rem;
+         border-bottom:2px solid #e5ddd9;position:sticky;top:0;z-index:5}
+  header b{font-size:1.2rem}
+  header .ngay{margin-left:auto;color:var(--xam);font-size:.9rem}
+  select{font:inherit;font-size:1.1rem;padding:.4rem .6rem;border-radius:.5rem;
+         border:2px solid #ddd;background:#fff}
+  .cot-bo{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+          gap:1rem;padding:1rem;align-items:start}
+  .cot{background:#fff;border-radius:.9rem;padding:.9rem;box-shadow:0 1px 4px #0001}
+  .cot h2{margin:.1rem 0 .8rem;font-size:1.05rem;display:flex;gap:.5rem;align-items:center}
+  .cot h2 span{background:#eee;border-radius:1rem;padding:.1rem .6rem;font-size:.9rem;
+               color:var(--xam)}
+  .luot{display:flex;align-items:center;gap:.8rem;padding:.6rem;border-radius:.7rem;
+        background:#fafafa;margin-bottom:.6rem;border:1px solid #eee}
+  .so{font-size:2.1rem;font-weight:800;min-width:2.6rem;text-align:center;line-height:1}
+  .cho .so{color:var(--do)} .goi .so{color:var(--xanh)} .xong .so{color:#999}
+  .ten{flex:1;min-width:0;font-size:.92rem;line-height:1.35}
+  .gio{color:var(--xam);font-size:.8rem}
+  button{font:inherit;cursor:pointer;border:0;border-radius:.6rem;padding:.7rem 1rem;
+         font-weight:700}
+  .nut-goi{background:var(--do);color:#fff;font-size:1.05rem}
+  .nut-xong{background:var(--xanh);color:#fff}
+  .nut-bo{background:#eee;color:#444}
+  .nut-lui{background:#fff;color:var(--do);border:2px solid var(--do);
+           padding:.45rem .8rem;font-size:.85rem}
+  .rong{color:var(--xam);text-align:center;padding:1.5rem .5rem;font-size:.95rem}
+  .mat-ket-noi{background:#7a1010;color:#fff;text-align:center;padding:.6rem;
+               font-weight:700;display:none}
+</style>
+</head>
+<body>
+
+<div class="mat-ket-noi" id="mat">Mất kết nối tới robot — số hiện trên màn hình có thể đã cũ</div>
+
+<header>
+  <b>Quầy</b>
+  <select id="chon-quay"></select>
+  <span class="ngay" id="ngay"></span>
+</header>
+
+<div class="cot-bo">
+  <div class="cot"><h2>⏳ Đang chờ <span id="d-cho">0</span></h2><div id="c-cho"></div></div>
+  <div class="cot"><h2>📣 Đang xử lý <span id="d-goi">0</span></h2><div id="c-goi"></div></div>
+  <div class="cot"><h2>✅ Hoàn thành <span id="d-xong">0</span></h2><div id="c-xong"></div></div>
+</div>
+
+<script>
+const QUAY_TEN = {
+  1:'Phòng Văn hóa – Xã hội', 2:'Kinh tế, Hạ tầng & Đô thị', 3:'Văn phòng HĐND & UBND',
+  4:'Hướng dẫn dịch vụ công trực tuyến', 5:'Hướng dẫn dịch vụ công trực tuyến',
+  6:'Thu phí, lệ phí & trả kết quả', 7:'Hướng dẫn dịch vụ công trực tuyến'
+};
+const sel = document.getElementById('chon-quay');
+sel.innerHTML = Object.keys(QUAY_TEN).map(q=>`<option value="${q}">Quầy ${q} — ${QUAY_TEN[q]}</option>`).join('');
+let quay = +(localStorage.getItem('quay') || 1);
+sel.value = quay;
+sel.onchange = () => { quay = +sel.value; localStorage.setItem('quay', quay); nap(); };
+
+const thoat = s => (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const gio = ms => ms ? new Date(ms).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}) : '';
+
+/* Hoàn tác chỉ hiện 30 giây sau khi bấm — đủ để sửa nhầm, không đủ để nghịch. */
+const vuaBam = new Map();
+function conHoanTac(so){ const t = vuaBam.get(so); return t && Date.now()-t < 30000; }
+
+async function lenh(duong, so){
+  vuaBam.set(so, Date.now());
+  try{
+    await fetch(duong, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                        body:'so='+so});
+  }catch(e){}
+  nap();
+}
+
+function veLuot(l, loai){
+  const nut =
+    loai==='cho'  ? `<button class="nut-goi" onclick="lenh('/api/xu-ly',${l.so})">Xử lý</button>` :
+    loai==='goi'  ? `<button class="nut-xong" onclick="lenh('/api/xong',${l.so})">Xong</button>
+                     <button class="nut-bo" onclick="lenh('/api/bo-qua',${l.so})">Vắng</button>` :
+    (conHoanTac(l.so) ? `<button class="nut-lui" onclick="lenh('/api/hoan-tac',${l.so})">↩ Hoàn tác</button>` : '');
+  return `<div class="luot ${loai}">
+    <div class="so">${l.so}</div>
+    <div class="ten">${thoat(l.ten)}<div class="gio">lấy số ${gio(l.lucLay)}${l.lucGoi?' · gọi '+gio(l.lucGoi):''}</div></div>
+    <div>${nut}</div></div>`;
+}
+
+async function nap(){
+  let d;
+  try{
+    const r = await fetch('/api/hang-cho?quay='+quay, {cache:'no-store'});
+    d = await r.json();
+    document.getElementById('mat').style.display = 'none';
+  }catch(e){
+    document.getElementById('mat').style.display = 'block';
+    return;
+  }
+  document.getElementById('ngay').textContent = d.ngay || '';
+  const nhom = {cho:[], goi:[], xong:[]};
+  for(const l of d.ds){
+    if(l.trangThai === 'dang-cho') nhom.cho.push(l);
+    else if(l.trangThai === 'dang-xu-ly') nhom.goi.push(l);
+    else nhom.xong.push(l);
+  }
+  nhom.xong.reverse();                       // việc xong gần nhất lên trên
+  for(const k of ['cho','goi','xong']){
+    document.getElementById('d-'+k).textContent = nhom[k].length;
+    document.getElementById('c-'+k).innerHTML = nhom[k].length
+      ? nhom[k].map(l=>veLuot(l,k)).join('')
+      : `<div class="rong">${k==='cho'?'Chưa có ai chờ':k==='goi'?'Chưa gọi số nào':'Chưa có lượt nào xong'}</div>`;
+  }
+}
+
+nap();
+setInterval(nap, 2000);
+</script>
+</body>
+</html>

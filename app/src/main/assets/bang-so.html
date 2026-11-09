@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bảng số thứ tự</title>
+<!--
+  BẢNG SỐ TREO SẢNH — mở trên TV hoặc màn hình bất kỳ có trình duyệt:
+  http://<ip-robot>:8080/bang-so
+
+  Vì sao có trang này dù anh Trường chưa yêu cầu: app KHÔNG in phiếu số, người dân
+  phải tự nhớ. Người lớn tuổi nghe robot gọi một lần rất dễ trượt, mà trượt là mất
+  lượt và không có đường nào tra lại. Bốn lớp đỡ hiện có — số rất to trên màn hình
+  robot, robot đọc hai lần, nút "Xem lại số của tôi", và bảng này — thì bảng treo
+  sảnh là lớp duy nhất người dân nhìn thấy được LIÊN TỤC trong lúc ngồi chờ.
+  Trang đã làm sẵn, phường chỉ cần cắm một cái màn hình vào là chạy.
+-->
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{background:#0e0a0a;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       min-height:100vh;padding:2vh 2vw;display:flex;flex-direction:column}
+  h1{font-size:3.2vw;font-weight:800;letter-spacing:.02em;text-align:center;
+     color:#FAB29A;margin-bottom:2vh}
+  .luoi{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(22vw,1fr));
+        gap:2vh 2vw;align-content:start}
+  .o{background:#1a1010;border:.35vh solid #C13F28;border-radius:1.5vh;
+     padding:2vh 1.5vw;text-align:center}
+  .o .nhan{font-size:1.6vw;color:#FAB29A;font-weight:700}
+  .o .so{font-size:11vw;font-weight:900;line-height:1;margin:.5vh 0;color:#fff}
+  .o .quay{font-size:2.6vw;font-weight:800;color:#E83636}
+  .trong{flex:1;display:flex;align-items:center;justify-content:center;
+         font-size:2.6vw;color:#8a7a76;text-align:center;line-height:1.5}
+  footer{text-align:center;color:#8a7a76;font-size:1.4vw;margin-top:2vh}
+</style>
+</head>
+<body>
+<h1>MỜI QUÝ KHÁCH TỚI QUẦY</h1>
+<div class="luoi" id="luoi"></div>
+<div class="trong" id="trong" style="display:none">
+  Chưa có số nào được gọi.<br>Mời quý khách lấy số ở màn hình robot.
+</div>
+<footer id="chan"></footer>
+
+<script>
+async function nap(){
+  let d;
+  try{ d = await (await fetch('/api/bang-so', {cache:'no-store'})).json(); }
+  catch(e){ document.getElementById('chan').textContent = 'Mất kết nối tới robot'; return; }
+
+  const ds = (d.dang_goi || []).slice(-8).reverse();   // 8 số gọi gần nhất, mới nhất trước
+  document.getElementById('trong').style.display = ds.length ? 'none' : 'flex';
+  document.getElementById('luoi').innerHTML = ds.map(l=>`
+    <div class="o">
+      <div class="nhan">SỐ THỨ TỰ</div>
+      <div class="so">${l.so}</div>
+      <div class="quay">QUẦY ${l.quay}</div>
+    </div>`).join('');
+  document.getElementById('chan').textContent =
+    'Trung tâm Phục vụ Hành chính công phường Mông Dương · ' + (d.ngay || '');
+}
+nap();
+setInterval(nap, 2000);
+</script>
+</body>
+</html>

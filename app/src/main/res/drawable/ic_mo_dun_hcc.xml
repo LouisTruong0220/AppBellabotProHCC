@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Icon hiện trong màn "Tùy chọn mô-đun" và "Chọn mô-đun tự khởi động" của PuduOS.
+
+  ⚠ Icon này chỉ ăn khi được khai TRÊN THẺ <intent-filter>, không phải trên <activity>
+    hay <application>. Launcher đọc ResolveInfo.icon, mà trường đó lấy từ thuộc tính của
+    chính thẻ intent-filter. Khai sai chỗ thì ô hiện TRẮNG TRƠN — đúng như bản trước
+    18/08/2026. Xem chú thích dài trong AndroidManifest.xml.
+
+  Hình: tờ giấy có góc gấp + ba dòng chữ — đọc ra "thủ tục giấy tờ" ngay ở cỡ 56dp.
+  Không vẽ con dấu tròn: ở cỡ đó nó bết thành một chấm.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- nền vuông bo góc, đỏ chủ đạo Roboworld -->
+    <path
+        android:fillColor="#C13F28"
+        android:pathData="M24,2 L84,2 A22,22 0 0,1 106,24 L106,84 A22,22 0 0,1 84,106
+                          L24,106 A22,22 0 0,1 2,84 L2,24 A22,22 0 0,1 24,2 Z" />
+
+    <!-- tờ giấy, góc trên phải gấp lại -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,22 L64,22 L78,36 L78,86 L34,86 Z" />
+    <!-- nếp gấp -->
+    <path
+        android:fillColor="#F0C9BE"
+        android:pathData="M64,22 L78,36 L64,36 Z" />
+
+    <!-- ba dòng chữ -->
+    <path
+        android:fillColor="#C13F28"
+        android:pathData="M43,48 L69,48 L69,53 L43,53 Z" />
+    <path
+        android:fillColor="#C13F28"
+        android:pathData="M43,60 L69,60 L69,65 L43,65 Z" />
+    <path
+        android:fillColor="#C13F28"
+        android:pathData="M43,72 L60,72 L60,77 L43,77 Z" />
+</vector>

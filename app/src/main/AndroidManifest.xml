@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+
+    <!--
+      Đọc mức "Âm lượng giọng nói" hãng cất ở /sdcard/pudu/appConfig/ — xem AmLuong.kt.
+      ⚠ Khai ở đây CHƯA ĐỦ trên Android 11+. Cấp một lần cho mỗi robot bằng adb:
+          adb shell appops set com.pudutech.business.hcc MANAGE_EXTERNAL_STORAGE allow
+      Không cấp thì app vẫn chạy, chỉ dùng mức mặc định 70.
+    -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage"/>
+
+    <application
+        android:name=".MainApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_mo_dun_hcc"
+        android:label="@string/ten_app"
+        android:hardwareAccelerated="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.HCC">
+
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/ten_app"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!--
+              Khai mình là một MÔ-ĐUN của robot, để hiện ra trong
+              Cài đặt → Chức năng robot → Cài đặt mô-đun → Chọn mô-đun tự khởi động.
+
+              ⚠ Tài liệu hãng (os-sdk/002-Development Environment) chỉ nói "đặt applicationId
+                là com.pudutech.business.xxx thì app sẽ hiện trong danh sách". CHƯA ĐỦ —
+                thử trên máy thật 18/08/2026: đặt đúng tên gói mà danh sách vẫn không có app.
+                Phải khai thêm nguyên bộ intent-filter dưới đây. Bộ này lấy từ chính mô-đun
+                "Dẫn chỗ" của hãng, đọc bằng:
+                    adb shell dumpsys package com.pudutech.business.usher
+
+              Ba action + category com.pudutech.SETTING.HOME là thứ launcher dò để dựng danh sách.
+              com.pudutech.category.router.HCC là tên riêng của mô-đun này — đừng dùng trùng
+              tên của hãng (USHER, DELIVERY…), trùng là hai app tranh nhau một khe.
+
+              ⚠⚠ android:label VÀ android:icon PHẢI ĐẶT NGAY TRÊN THẺ <intent-filter> NÀY.
+
+                 Bản 18/08/2026 khai label ở <activity> nên app hiện ra là một DÒNG TRẮNG
+                 TRƠN, không tên không icon. Ghi chú cũ đoán "launcher không biết category
+                 riêng nên không lấy được tên" — SAI. Nguyên nhân thật:
+
+                 Launcher đọc ResolveInfo.labelRes và ResolveInfo.icon. Theo Android, hai
+                 trường đó lấy từ thuộc tính của CHÍNH THẺ <intent-filter>, không phải từ
+                 <activity> hay <application>. Filter không khai thì trả 0.
+
+                 Bằng chứng đo 19/08/2026:
+                   - /sdcard/pudu/appConfig/Common.preferences_pb ghi nguyên văn
+                         "routerInfo":{...,"icon":0,"label":0,"pkgName":"com.pudutech.business.hcc"}
+                   - Mô-đun "Dẫn chỗ" của hãng khai label+icon ngay trên thẻ intent-filter
+                     (đọc manifest usher.apk bằng aapt2 dump xmltree).
+                   - Thêm hai thuộc tính này vào app Khiêu vũ là thẻ hiện đủ tên + icon ngay.
+
+                 ⚠ Sau khi cài đè, vào lại Cài đặt → Chức năng robot → Cài đặt mô-đun →
+                   Chọn mô-đun tự khởi động và CHỌN LẠI mô-đun này, để routerInfo lưu trong
+                   Common.preferences_pb được ghi lại kèm icon/label mới.
+            -->
+            <intent-filter
+                android:label="@string/ten_mo_dun"
+                android:icon="@drawable/ic_mo_dun_hcc">
+                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="com.pudutech.action.router.LAUNCHER.FUNCTION"/>
+                <action android:name="com.pudutech.action.router.MAIN"/>
+                <action android:name="com.pudutech.action.router.work.plan"/>
+                <category android:name="com.pudutech.SETTING.HOME"/>
+                <category android:name="com.pudutech.category.router.HCC"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

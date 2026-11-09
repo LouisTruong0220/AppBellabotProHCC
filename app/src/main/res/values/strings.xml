@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tên trong danh sách app Android. Không dấu cho chắc chắn không vỡ chữ. -->
+    <string name="ten_app">Hanh chinh cong</string>
+
+    <!--
+      Tên hiện trong màn "Tùy chọn mô-đun" và "Chọn mô-đun tự khởi động" của PuduOS.
+      Cán bộ trung tâm nhìn thấy chỗ này nên để CÓ DẤU — đã kiểm trên máy thật, màn của
+      hãng hiển thị tiếng Việt có dấu bình thường.
+
+      ⚠ Chỉ ăn khi khai TRÊN THẺ <intent-filter>. Khai ở <activity> thì launcher đọc ra 0
+        và ô hiện trắng trơn.
+    -->
+    <string name="ten_mo_dun">Hành chính công</string>
+</resources>

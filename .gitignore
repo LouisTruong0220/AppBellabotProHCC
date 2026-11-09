@@ -1,0 +1,35 @@
+# ── SDK của hãng PUDU — KHÔNG đẩy lên kho công khai ──
+# opensdk-*.aar là tài sản của PUDU, chỉ cấp cho đại lý. Kho này công khai nên không đưa lên.
+# Muốn build: xin bản PdCoreSDK từ PUDU rồi đặt vào app/libs/ (build.gradle.kts tự nạp mọi .aar ở đó).
+app/libs/*.aar
+app/libs/*.jar
+
+# APK đã gói sẵn SDK của hãng bên trong — cùng lý do ở trên
+apk/
+*.apk
+
+# ── Thứ Gradle tự sinh ra, dựng lại được bằng một lệnh build ──
+build/
+app/build/
+.gradle/
+.idea/
+.cxx/
+*.iml
+
+# Đường dẫn Android SDK riêng của từng máy
+local.properties
+local.properties.bak
+
+# Bộ giọng MP3 (155 file, 27 MB) — sinh lại được bằng script sinh giọng
+giong/
+
+# Ảnh chụp màn hình nháp lúc lắp đặt (bản chọn lọc giữ ở anh-kiem-chung/)
+_*.png
+
+# Báo cáo gửi hãng — tài liệu, không phải mã nguồn
+bao-cao-hang/
+
+# Rác hệ điều hành
+Thumbs.db
+desktop.ini
+.DS_Store
